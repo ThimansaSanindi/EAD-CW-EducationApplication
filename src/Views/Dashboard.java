@@ -171,10 +171,84 @@ public class Dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_logout_btnActionPerformed
 
     private void report_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_report_btnActionPerformed
-        // TODO add your handling code here:
-        setVisible(false);
-        new Reports().setVisible(true);
-    }//GEN-LAST:event_report_btnActionPerformed
+    java.sql.Connection conn = null;
+    try {
+        // Possible locations for the report file (corrected to match your actual path)
+        String[] possiblePaths = {
+            "src/reports/stregistration_report.jrxml",
+            "src\\reports\\stregistration_report.jrxml",
+            "reports/stregistration_report.jrxml",
+            "reports\\stregistration_report.jrxml"
+        };
+        String reportPath = null;
+        java.io.File reportFile = null;
+
+        // Find the correct path
+        for (String path : possiblePaths) {
+            reportFile = new java.io.File(path);
+            System.out.println("Trying path: " + reportFile.getAbsolutePath());
+            if (reportFile.exists()) {
+                reportPath = path;
+                System.out.println("Found report file at: " + reportPath);
+                break;
+            }
+        }
+
+        if (reportPath == null) {
+            // Show all attempted paths for debugging
+            StringBuilder pathsAttempted = new StringBuilder("Report file not found. Attempted paths:\n");
+            for (String path : possiblePaths) {
+                pathsAttempted.append("- ").append(new java.io.File(path).getAbsolutePath()).append("\n");
+            }
+            throw new Exception(pathsAttempted.toString());
+        }
+
+        System.out.println("Using report file: " + reportPath);
+
+        // Establish database connection (update with your DB details)
+        conn = java.sql.DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/registration_db", "root", ""
+        );
+
+        // Compile and generate report
+        System.out.println("Compiling report...");
+        net.sf.jasperreports.engine.JasperReport jasperReport = net.sf.jasperreports.engine.JasperCompileManager.compileReport(reportPath);
+
+        // Create parameters map (empty for now, but can be used for filtering)
+        java.util.Map<String, Object> parameters = new java.util.HashMap<>();
+
+        System.out.println("Filling report with data...");
+        net.sf.jasperreports.engine.JasperPrint jasperPrint = net.sf.jasperreports.engine.JasperFillManager.fillReport(jasperReport, parameters, conn);
+
+        System.out.println("Displaying report...");
+        net.sf.jasperreports.view.JasperViewer.viewReport(jasperPrint, false);
+
+    } catch (org.xml.sax.SAXParseException ex) {
+        String error = "Report XML parsing failed: " + ex.getMessage() +
+                      "\nThis usually means:\n1. JRXML file has compatibility issues\n2. Wrong JasperReports version\n" +
+                      "Try using a simpler JRXML file or update JasperReports library.";
+        System.err.println(error);
+        javax.swing.JOptionPane.showMessageDialog(this, error, "Report XML Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+    } catch (net.sf.jasperreports.engine.JRException ex) {
+        String error = "Report generation failed: " + ex.getMessage();
+        System.err.println(error);
+        javax.swing.JOptionPane.showMessageDialog(this, error, "Report Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+    } catch (Exception ex) {
+        String error = "Unexpected error: " + ex.getMessage();
+        System.err.println(error);
+        ex.printStackTrace();
+        javax.swing.JOptionPane.showMessageDialog(this, error, "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+    } finally {
+        if (conn != null) {
+            try {
+                conn.close();
+                System.out.println("Database connection closed.");
+            } catch (Exception e) {
+                System.err.println("Error closing connection: " + e.getMessage());
+            }
+        }
+    }
+}//GEN-LAST:event_report_btnActionPerformed
 
  
 

@@ -15,7 +15,7 @@ import java.sql.Statement;
  */
 public class dbConnection {
 
-    private final String url = "jdbc:mysql://localhost:3306/registration_db"; // MySQL port 3306 and DB name
+    private final String url = "jdbc:mysql://localhost:3306/registration_db"; 
     private final String user = "root";
     private final String pass = "";
 
